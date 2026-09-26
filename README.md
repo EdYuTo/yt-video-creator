@@ -9,6 +9,8 @@ It handles two kinds of video:
 
 ## Examples
 
+### Music-driven: a cookie recipe
+
 Both were cut from ~70 minutes of raw overhead kitchen footage, a phone clip and five photos:
 
 | Long-form (1:59) | Short (0:44) |
@@ -16,6 +18,20 @@ Both were cut from ~70 minutes of raw overhead kitchen footage, a phone clip and
 | [![Long-form](https://img.youtube.com/vi/A-A4ukkqs0s/hqdefault.jpg)](https://www.youtube.com/watch?v=A-A4ukkqs0s) | [![Short](https://img.youtube.com/vi/awqqZKaa6hw/hqdefault.jpg)](https://www.youtube.com/shorts/awqqZKaa6hw) |
 
 The whole edit for both is one file: [`examples/cookie/plan.json`](examples/cookie/plan.json).
+
+### Talk-driven: a food vlog in Kobe, Japan
+
+[![A5 Kobe Beef / Yakiniku Night](https://img.youtube.com/vi/eA6XAgD2w9o/hqdefault.jpg)](https://www.youtube.com/watch?v=eA6XAgD2w9o)
+
+A 7:12 video cut from a 93-minute restaurant dinner: four DJI clips (40 GB of 2.7K 10-bit HEVC), mostly conversation in Portuguese, plus the Japanese staff and a chef. The skill:
+- transcribed everything locally, forcing the language, and picked the conversations worth keeping;
+- cut the silences using the word timings and added English subtitles;
+- kept the music low and only in between the talking;
+- blurred the face of a friend who hadn't agreed to be on camera;
+- added credits, then the creator's broken Japanese after them as black-and-white bloopers;
+- made the thumbnail.
+
+The first complete version took about 1 hour and ~212k tokens with Claude Opus 5.5. Follow-ups brought the total to under 2 hours and ~280k tokens: extra face blurring, and a thumbnail redo to show the higher-grade steak.
 
 ## Install
 
