@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "studio": "remotion studio",
-    "render:long": "remotion render LongForm out/long.mp4",
-    "render:short": "remotion render Short out/short.mp4",
-    "typecheck": "tsc -p ."
+    "build": "python3 \"__SKILL_DIR__/scripts/build_edit.py\" --project .",
+    "render:long": "node render.mjs LongForm out/long.mp4",
+    "render:short": "node render.mjs Short out/short.mp4",
+    "stills": "node stills.mjs",
+    "typecheck": "tsc -p .",
+    "render:thumb": "node render.mjs Thumbnail out/thumbnail.jpg"
   }
 }

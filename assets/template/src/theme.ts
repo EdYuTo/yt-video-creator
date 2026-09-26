@@ -2,7 +2,6 @@
 import {loadFont as loadDisplay} from '@remotion/google-fonts/Fraunces';
 import {loadFont as loadBody} from '@remotion/google-fonts/Nunito';
 
-export const FPS = 30;
 
 export const DISPLAY = loadDisplay('normal', {weights: ['600', '800'], subsets: ['latin']}).fontFamily;
 export const BODY = loadBody('normal', {weights: ['600', '800'], subsets: ['latin']}).fontFamily;

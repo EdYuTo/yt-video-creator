@@ -3,7 +3,7 @@
 ## Long-form (regular upload)
 - **1920×1080, 16:9, 30 fps** (match the footage frame rate; 29.97 source at 30 is fine). 4K only if all the footage is 4K and the user wants it.
 - H.264, CRF ~16, AAC audio (the template config does this). YouTube re-encodes, so a high-quality master helps.
-- Process/recipe/tutorial videos: 2–4 min is the sweet spot for footage like this. Front-load the result: open on the finished thing (hero photo or payoff shot) with the title, then show how.
+- Process/recipe/tutorial videos: 2–4 min is the sweet spot for footage like this. Talk/vlog cuts: 5–10 min, alternating talk windows with short b-roll. Front-load the result: open on the finished thing (hero photo or payoff shot) with the title, then show how.
 - Readability: captions of at least 38 px at 1080p. Keep text away from the bottom-right corner (YouTube's player controls and end-screen elements).
 - End screen: YouTube lets creators add end-screen cards in the last 5–20 s. A calm outro card (summary/recipe) of 7+ s works well for that.
 - Thumbnail (optional extra): 1280×720 still. Render a frame with the hero shot and a big title if the user wants one.
@@ -18,6 +18,11 @@
 - Square or vertical phone clips: square uses `fit: 'blur'`; vertical fills natively.
 
 ## Music
-- Prefer tracks the user owns or that are free for YouTube (YouTube Audio Library). Content ID claims can block or demonetize uploads.
-- Long-form: fade in over 0.5 s and out over the last 2 s. Ideally the video length equals the song length so it ends naturally.
+- Prefer tracks the user owns or that are free for YouTube (YouTube Audio Library). Content ID claims can block or demonetize uploads. Credit the track in the credits and description even when it isn't required.
+- Music-driven long-form (`mode: "bed"`): fade in over 0.5 s and out over the last 2 s. Ideally the video length equals the song length (`matchSong`) so it ends naturally.
+- Talk long-form (`mode: "broll"`): music only under b-roll and cards, around 0.15 volume, never under speech. See references/talk.md.
 - Short: start at a strong downbeat (after a break) and end on a phrase decay. A short fade (~0.4 s) avoids a click.
+
+## Privacy
+- People other than the creator (friends, staff, strangers) may not want to be on YouTube. Ask up front, and by default blur faces that aren't the creator's (`faces.py` + `blur` boxes), or replace the shot.
+- Don't name private people or small businesses in titles or credits unless the user asks.

@@ -1,14 +1,18 @@
-"""Locate a working ffmpeg/ffprobe.
+"""Locate a working ffmpeg/ffprobe, plus small shared helpers.
 
 Homebrew ffmpeg breaks often (e.g. missing libx265 dylib after an upgrade), so prefer the
 binaries Remotion ships in node_modules/@remotion/compositor-*/ and fall back to the system ones.
-Remotion's build is minimal: no drawtext/tile filters, no raw s16le muxer. Callers therefore
-tile images with Pillow and decode audio to WAV.
+
+Remotion's build is minimal. It HAS: scale, crop, format, trim/atrim, concat, loudnorm,
+silencedetect, volume, aresample, zscale/tonemap; encoders libx264, h264_videotoolbox, libx265,
+aac; hwaccel videotoolbox. It LACKS: fps (use `-r 30`), drawtext, tile, the raw s16le muxer.
+So: tile images with Pillow and decode audio to WAV (see pcm()).
 """
 import glob
 import os
 import shutil
 import subprocess
+import sys
 
 
 def _remotion_bin(project):
@@ -39,3 +43,23 @@ def duration(path, project=None):
         [fp, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path], env=env
     )
     return float(out)
+
+
+def pcm(path, project=None, sr=16000, start=None, dur=None):
+    """Decode audio to mono s16 PCM bytes at `sr` Hz (via WAV, since s16le muxer is missing)."""
+    ff, _, env = tools(project)
+    cmd = [ff, "-v", "error"]
+    if start is not None:
+        cmd += ["-ss", f"{start:.3f}"]
+    cmd += ["-i", path]
+    if dur is not None:
+        cmd += ["-t", f"{dur:.3f}"]
+    cmd += ["-vn", "-ac", "1", "-ar", str(sr), "-c:a", "pcm_s16le", "-f", "wav", "-"]
+    raw = subprocess.run(cmd, env=env, capture_output=True, check=True).stdout
+    return raw[44:][: (len(raw) - 44) // 2 * 2]
+
+
+def project_arg(argv=None):
+    """Tiny helper for scripts that just need --project from argv."""
+    argv = argv or sys.argv
+    return argv[argv.index("--project") + 1] if "--project" in argv else None
