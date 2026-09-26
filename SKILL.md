@@ -1,102 +1,148 @@
 ---
 name: yt-video-creator
-description: Edit a folder of raw footage (camera clips, phone videos, photos) into a finished YouTube video with Remotion — either a 16:9 long-form video or a 9:16 YouTube Short — including shot selection, sped-up process shots, captions/titles, beat-synced music, and a rendered MP4. Use this whenever the user points at a folder of clips and wants a video made, edited, cut, or assembled from it (recipes, tutorials, vlogs, builds, trips, DIY, product demos), wants a YouTube upload or Short from raw footage, or wants a vertical cut of an existing edit — even if they don't say "Remotion" or "skill".
+description: Edit a folder of raw footage (camera clips, phone videos, drone/DJI files, photos) into a finished YouTube video with Remotion — a 16:9 long-form video or a 9:16 YouTube Short — including shot selection, sped-up process shots, dialogue kept with silences cut and subtitles, captions/titles, background music (beat-synced for Shorts, ducked under speech), credits and bloopers, privacy blur of bystanders, and a rendered MP4. Use this whenever the user points at a folder of clips and wants a video made, edited, cut, or assembled from it (recipes, food/restaurant vlogs, travel, tutorials, builds, DIY, product demos), wants a YouTube upload or Short from raw footage, or wants a vertical cut of an existing edit — even if they don't say "Remotion" or "skill".
 ---
 
 # YouTube video creator
 
-Turn a folder of raw footage into a rendered YouTube video. You can't watch video, so the workflow is built around **contact sheets**: grids of timestamped frames you read as images. They tell you what's in each clip and give you the exact in/out points to write into the edit.
+You turn a folder of raw footage into a rendered YouTube video. You can't watch video or hear audio, so the workflow runs on proxies for both:
+- **contact sheets** (grids of timestamped frames you read as images) for what the footage looks like;
+- **transcripts** (local speech-to-text with word timings) for what people say.
 
-Bundled resources (paths relative to this skill's directory):
-- `scripts/setup_project.sh` scaffolds a Remotion project next to the footage and links the media.
-- `scripts/probe.py` lists the media with durations and resolutions.
-- `scripts/sheets.py` makes contact sheets: an `overview` per clip, and `fine` sheets for a time range. `fine` also checks rendered output.
-- `scripts/music.py` gives the song's loudness map, breaks and onsets, and BPM plus beat phase.
-- `scripts/stills.mjs` renders sample frames from a composition without re-bundling each time.
-- `assets/template/` is the Remotion project: `LongForm` (1920×1080) and `Short` (1080×1920) compositions. **All creative decisions go in `src/long-edit.ts` / `src/short-edit.ts`**, which are data only. Layout lives in the `.tsx` files; the look lives in `src/theme.ts`.
-- `references/formats.md` covers YouTube specs, Shorts safe zones and pacing. Read it before planning the edit.
+The edit is written as **`plan.json`** in *source time*, meaning the timestamps you read off sheets and transcripts. `build_edit.py` then:
+- links or proxies the media;
+- cuts silences out of dialogue;
+- places subtitles, music, beats and cards;
+- writes `src/edit-data.ts` for the Remotion template to draw.
 
-All Python scripts take `--project <remotion project dir>` so they use Remotion's bundled ffmpeg (see Gotchas). Put contact sheets and other scratch output in the session scratchpad, not the footage folder.
+You never do frame math by hand.
+
+Bundled resources (paths relative to this skill's directory; `<skill>` below):
+
+| file | what it does |
+|---|---|
+| `scripts/setup_project.sh` | Scaffolds `<footage>/<name>/`: Remotion template, `source/` links to originals, photos in `public/footage/`, `media.json` from probing, and a `plan.json` skeleton with the clip table |
+| `scripts/probe.py` | Media list: codec, bit depth, resolution, fps, audio, and whether each clip should be `link` or `proxy` |
+| `scripts/sheets.py` | `overview` (per-clip grid) and `fine` (several `START-END:STEP` ranges of one clip, or of a render) contact sheets |
+| `scripts/setup_speech.sh` | One-time private venv (`~/.cache/yt-video-creator`): mlx-whisper or faster-whisper, numpy, OpenCV and the YuNet face model. Prints its python path |
+| `scripts/transcribe.py` | `skim` whole clips (small model) → readable transcripts; `words` for chosen windows (large-v3-turbo) → `transcripts/words.json` |
+| `scripts/music.py` | Song loudness map, breaks → onsets, BPM and beat phase |
+| `scripts/build_edit.py` | `plan.json` → media + `src/edit-data.ts` + `edit-map.json` (also `npm run build`) |
+| `scripts/speech_map.py` | Loudness-based speech islands. Only useful for quiet footage |
+| `scripts/faces.py` | `scan` a render for faces mapped to shots; `review` tiles the flagged frames |
+| `scripts/audio_levels.py` | Loudness of a render per segment kind (talk / b-roll / cards / post) |
+| `assets/template/` | Remotion project: `LongForm` 1920×1080, `Short` 1080×1920, `Thumbnail` 1280×720 still, `render.mjs`, `stills.mjs`, `theme.ts` |
+| `references/plan.md` | **The plan.json format, with a music-driven and a talk example. Read before writing the plan.** |
+| `references/talk.md` | The dialogue workflow in detail (transcription pitfalls, choosing conversations, subtitles, ducking) |
+| `references/formats.md` | YouTube and Shorts specs, safe zones, pacing, music licensing |
+
+Python scripts take `--project <proj>` so they use Remotion's bundled ffmpeg (see Gotchas). `transcribe.py`, `speech_map.py` and `faces.py` need the venv python from `setup_speech.sh`; the rest run on system `python3` with Pillow. Put scratch output (sheets, stills) in the session scratchpad, not the footage folder.
 
 ## Workflow
 
 ### 1. Ask what to make (one question round)
 
-Before any heavy work, ask with a single multi-question prompt:
-- **Format**: YouTube long-form 16:9 (default when unsure), a YouTube Short 9:16, or both.
-- **Length**: long-form is usually 2–3 min for a process video; a Short is 30–45 s (60 s max is safest across platforms).
-- **On-screen text language.**
-- **Music**: the user supplies a file, or silent with a music slot. If they give a YouTube link, look up the title (the oEmbed endpoint `https://www.youtube.com/oembed?url=<link>&format=json` works with WebFetch). Don't download it yourself: ripping audio from YouTube breaks its terms, and a copyrighted track can get the upload claimed. Many links are YouTube Audio Library tracks, which are free to use: tell the user to download it from YouTube Studio → Audio Library and save it as `public/music.mp3`. Keep working while they do.
-- **Story details** the footage can't tell you: a recipe, steps, names, what matters. Often the user has already given these; don't ask again.
-
-If they say something like "check what's best for YouTube", decide yourself using `references/formats.md` and say what you picked.
+Ask everything in one multi-question prompt. Skip whatever the user already told you, and if you can't ask (e.g. you're a subagent), choose defaults and list them as assumptions.
+- **Format**: YouTube long-form 16:9 (the default), a Short 9:16, or both. "Whatever's best for YouTube" means long-form unless the footage is under ~1 min.
+- **Length**: process video 2–4 min; talk/vlog 5–10 min; a Short 30–45 s.
+- **On-screen text / subtitle language.**
+- **Music**: a file the user supplies, or none. For a YouTube link, look up the title (`https://www.youtube.com/oembed?url=<link>&format=json` via WebFetch). Don't download it: ripping audio from YouTube breaks its terms, and a copyrighted track can get the upload claimed. YouTube Audio Library tracks are free; the user downloads the file and saves it as `public/music.mp3`. Keep working meanwhile.
+- **Talk**: does the footage have conversation that matters, and in which language(s)? This switches on the dialogue workflow.
+- **Other people on camera**: should bystanders or friends who didn't consent be blurred? Default to blurring faces that aren't the creator.
+- **Story details** the footage can't tell you: a recipe, steps, place names, what matters, funny moments to keep (e.g. bloopers).
 
 ### 2. Scaffold and inventory
 
 ```bash
-bash <skill>/scripts/setup_project.sh <footage_dir> <name>-video   # → <footage_dir>/<name>-video/
-python3 <skill>/scripts/probe.py <footage_dir> --project <proj>
+bash <skill>/scripts/setup_project.sh <footage_dir> <name>-video
 ```
-Never modify or move the user's original files. The project only links to them.
+Read the probe table it prints. The `link`/`proxy` column decides media handling: 10-bit, HEVC, >1080p or >30 fps clips get proxies of only the used ranges. Never modify, move or delete the user's originals; `source/` only links to them. If the footage has talk, run `bash <skill>/scripts/setup_speech.sh` now (it takes a few minutes the first time).
 
-### 3. See the footage
+### 3. See (and hear) the footage
 
 ```bash
-python3 <skill>/scripts/sheets.py overview <footage_dir> --out <scratch>/sheets --project <proj>
+python3 <skill>/scripts/sheets.py overview <proj>/source --out <scratch>/sheets --project <proj> -n 8 --width 256
 ```
-Read every sheet. Write a clip → content map as you go (e.g. "0583: hand mixer at sink; eggs poured 3:36"). Note cameos and happy accidents too (a pet, a reaction): they make great beats. Also note what's **missing**: if a step has no footage, plan to caption it over the nearest shot rather than inventing footage. Tell the user about the gap at the end.
+Use small thumbnails: sheets are the biggest token cost of this workflow. For DJI footage, the `.lrf.mp4` proxies in `source/` decode much faster; they're fine for sheets and transcription, not for rendering. Read every sheet and write a clip → content map. Note cameos and happy accidents, and what's **missing**: if a step has no footage, caption it over the nearest shot rather than inventing footage, and tell the user.
 
-Photos: tile them into one image with Pillow and look at them. They're usually the best-looking "hero" frames, good for the intro, the end card and a montage.
+Tile the photos into one image with Pillow and look at them. They're the best "hero" frames for the intro, section openers, the montage and the end card.
+
+**Talk footage**: transcribe before choosing shots. Contact sheets can't tell you whether a conversation is interesting.
+```bash
+$VENV_PY <skill>/scripts/transcribe.py skim <id> [<id>...] --project <proj> --language pt
+```
+Read `transcripts/<id>.txt`. Follow `references/talk.md` for choosing conversations and getting word timings.
 
 ### 4. Plan the story, then find exact points
 
-Map clips onto the story (the user's steps, or chronology). For each shot you intend to use, run a `fine` sheet over the relevant range, every 3–12 s depending on clip length:
-```bash
-python3 <skill>/scripts/sheets.py fine <clip> <start> <end> <step> --out <scratch>/sheets --project <proj>
-```
-Pick the in-point where the action **starts** (the ingredient hitting the bowl, not the empty bowl before it). The most common mistake is starting a shot a few seconds early, so the payoff happens after the cut.
-
-For 9:16, also read off the horizontal position of the subject in each shot (as a % of frame width). That becomes the shot's `x` crop focus. A 9:16 crop keeps only ~32% of a 16:9 frame's width, so a centered default often loses the action.
+Map clips onto the story (the user's steps, the courses of a meal, the chronology). Then pin exact points:
+- **Visual shots**: run `fine` sheets over the candidate ranges, several ranges per sheet:
+  `sheets.py fine <proj>/source/<file> 30-40:2 95-110:3 --out ... --project <proj>`.
+  Start where the action **starts** (the ingredient hitting the bowl, not the empty bowl before it). The most common mistake is starting a few seconds early, so the payoff lands after the cut.
+- **Talk windows**: get word timestamps with `transcribe.py words <id>:<start>-<end> ...`. `build_edit.py` cuts the silences from them, and you write the subtitles from the transcript (translated if needed).
+- **9:16 crops**: read the subject's horizontal position (% of width) per shot for `x`. Only ~32% of a 16:9 frame's width survives.
 
 ### 5. Music (if provided)
 
 ```bash
 python3 <skill>/scripts/music.py <proj>/public/music.mp3 --project <proj> [--window START LEN]
 ```
-- **Long-form**: set `TARGET_SEC` to the song's duration so the video ends with the music. The outro card absorbs the difference. If the song is much shorter than the requested length, tighten the edit rather than looping the song, and tell the user.
-- **Short**: choose `MUSIC_START_SEC` at a hard onset right after a break (the script lists breaks → next onset). Choose the end where a phrase decays into the next break, ideally 30–45 s later. Re-run with `--window <start> <len>` to get the BPM and beat phase for that stretch. Put those into `BEAT_SEC` / `BEAT_OFFSET_SEC`, and give every shot a length in beats, so cuts land on the beat.
+- **Music-driven long-form** (little or no talk): `mode: "bed"`, optionally `matchSong: true` so the outro card stretches until the song ends. If the song is much shorter than the requested video, tighten the edit rather than looping, and tell the user.
+- **Talk long-form**: `mode: "broll"` (the `auto` default when talk items exist). Music plays only under b-roll, photos and cards, at around 0.15 volume, and is silent under dialogue. The song position advances only while it's audible, so a short song rarely needs to loop.
+- **Short**: start at a hard onset right after a break (the script lists breaks → next onset), end where a phrase decays, and re-run with `--window` for BPM and beat phase. Shot lengths are then in beats.
 
-### 6. Write the edit
+### 6. Write plan.json and build
 
-Fill in `long-edit.ts` and/or `short-edit.ts`, replacing all the example data. Guidance:
-- Speed up process footage heavily (4–30×) and keep human moments (reactions, tasting, talking) at 1×.
-- **Long-form**: ~2.5–4 s per shot. Use sections with a caption that spans their shots, `chip` for quantities and specs, `counter` for elapsed-time moments (oven, drive, curing), and an outro that summarizes (e.g. full recipe) for viewers who pause.
-- **Short**: the hook comes first (the payoff shot plus a punchy line), then 1–2 beats per shot, one- or two-word headlines, and an end card pointing to the caption/description.
-- Theme: adjust `theme.ts` fonts and colors to the subject.
-- Remove unused `LIST_CARD` or `MONTAGE` entries instead of leaving placeholders. Only render the compositions the user asked for.
+Fill `plan.json` following `references/plan.md`:
+- `long.intro`: drawn over the first section, whose first item should be the hero shot or photo.
+- `long.sections[].items`: b-roll, talk windows with subtitles, photos.
+- `long.listCard`, `long.outro`, `long.credits`, `long.post` (black-and-white bloopers after the credits).
+- `long.music`, `blur`, `short`.
 
-`npm run typecheck`, then render sample stills (one per section is ideal) and **look at them**:
+Guidance:
+- Speed up process b-roll heavily (4–30×). Keep human moments (reactions, tasting, talk) at 1×.
+- **Long-form pacing**: ~2.5–4 s per b-roll shot. Open each section on a photo or wide shot. Use `chip` for quantities, `counter` for elapsed time, and an outro summary (e.g. the full recipe) for viewers who pause.
+- **Short**: the hook first (payoff shot plus a punchy line), 1–2 beats per shot, one- or two-word headlines, and an end card pointing to the caption.
+- Adjust `src/theme.ts` fonts and colors to the subject.
+
 ```bash
-cd <proj> && node <skill>/scripts/stills.mjs LongForm <scratch>/stills 60 300 900 ...
+cd <proj> && npm run build && npm run typecheck
+node stills.mjs LongForm <scratch>/stills <frame> <frame> ...   # frames: see edit-map.json (seconds × 30)
 ```
-Tile them into a grid with Pillow before reading, so one image shows many frames.
+`build_edit.py` prints the total length, talk seconds, music runs and WARN lines (e.g. talk windows missing word timestamps). Fix every WARN. Look at the stills (tile them into one image), one per section.
 
 ### 7. Render and verify
 
-Render in the background (long-form takes several minutes):
 ```bash
-cd <proj> && npx remotion render LongForm out/long.mp4     # or: Short out/short.mp4
+cd <proj> && npm run render:long      # or render:short; runs in the background, minutes to ~15 min
 ```
-Then check the actual output. Run `sheets.py fine out/<file>.mp4 0 <duration> 1 --width 180` for one frame per second, and read it looking for: empty or pre-action shots, subjects cropped out in 9:16, captions overlapping the subject or platform UI, text overflowing. Fix `from`/`x` values and re-render. Confirm the duration, resolution and audio stream with ffprobe.
+Always render with `render.mjs` (the npm scripts). `npx remotion render` copies all of `public/` on every render.
+
+Then verify the output. Don't skip this: it's where the real bugs show up.
+- **Picture**: `sheets.py fine out/long.mp4 0-<dur>:2 --width 180 --cols 10`. Look for pre-action or empty shots, subjects cropped out, text overlapping the subject or subtitles, and overflow.
+- **Sound** (talk videos): `audio_levels.py out/long.mp4 --project <proj>`. Talk should be around −20 dBFS, music-only b-roll 6–8 dB below it, and the peak under −1 dBFS.
+- **Privacy** (anyone besides the creator on camera): `$VENV_PY faces.py scan out/long.mp4 --project <proj>`, then `faces.py review ...` and look at the tiles. About half of the hits are hands, glasses or food. Add `blur` boxes (source time) or replace the shot, rebuild, re-render and re-scan. Tell the user the detector misses profiles and that boxes are static, and point them to the timestamps worth watching.
+- Confirm the specs with ffprobe (resolution, duration, audio stream).
+
+**Thumbnail** (offer it for every long-form video): a reaction face plus the subject (the dish, the build) makes a strong 2-panel split. Scan the talk windows around the best reaction with `sheets.py fine`, then grab full-res frames with ffmpeg and crop to the face to compare expressions. Use a ≤4-word title and an optional hook badge, but only claims the footage backs up (a price from the transcript, not a guess). Add a `thumbnail` block (`references/plan.md`), `npm run build`, `npm run render:thumb`, and look at the result.
 
 ### 8. Report
 
-Give the user: output path(s), specs (resolution, duration, size), the structure of the edit, anything you assumed or that the footage lacked, and how to tweak it (edit file + `npm run studio` / render command). For a Short, also give a ready-to-paste caption/description. For long-form, offer a YouTube description with the full recipe or steps.
+Tell the user:
+- the output path and specs;
+- the structure (sections with source clip@time, what was kept and cut and why);
+- the music handling;
+- assumptions, missing footage, privacy fixes and where to double-check;
+- how to tweak it: edit `plan.json` → `npm run build` → `npm run render:long`, or `npm run studio` to preview.
+
+Offer a ready-to-paste YouTube description (recipe or steps, music credit). For a Short, give the post caption.
 
 ## Gotchas (all hit in practice)
 
-- **Homebrew ffmpeg is often broken** (e.g. `Library not loaded: libx265.215.dylib`). Don't fix the system install unasked. The scripts use Remotion's bundled binary, which needs `DYLD_LIBRARY_PATH` set to its folder (handled in `_ff.py`). That build has no `drawtext`/`tile` filters and no raw `s16le` output, so tile images with Pillow and decode audio to WAV.
-- **Media in `public/`**: symlinks pointing outside `public/` 404 in the render server, relative symlinks break inside the bundle, and symlinked JPEGs fail to decode. Use hard links for video (same disk, no extra space) and copies for photos. `setup_project.sh` does this.
-- `trimBefore` is in source frames at the composition fps: `Math.round(from * FPS)`. With `playbackRate`, the source advances `speed ×` faster than the timeline.
-- Big 1080p/4K clips render fine through `OffthreadVideo`. If a codec won't decode (HEVC 10-bit, ProRes RAW), transcode a proxy for that clip only.
-- Keep the user's git hygiene: the project's `.gitignore` excludes `public/footage`, music and `out/`. Don't commit unless asked.
+- **Homebrew ffmpeg is often broken** (`Library not loaded: libx265.215.dylib`). Don't fix the system install unasked. The scripts use Remotion's bundled binary via `_ff.py`, and so must you: `DYLD_LIBRARY_PATH` needs to point at its folder. It has scale, crop, trim, concat, loudnorm, silencedetect, libx264, h264_videotoolbox and videotoolbox decode. It has **no** `fps` filter (use `-r 30`), `drawtext`, `tile` or s16le muxer (decode audio to WAV; tile images with Pillow). mlx-whisper shells out to the system ffmpeg, so `transcribe.py` passes it decoded arrays instead.
+- **Media and `public/`**: the render server 404s on symlinks leaving `public/`, and symlinked JPEGs fail to decode. `build_edit.py` hard-links `link` clips (copying if on another disk, with a warning) and writes proxies. Raw footage never goes in `public/`.
+- **Proxies** are for heavy sources (10-bit HEVC at 2.7K/4K, 60p, files of tens of GB). They're transcoded per used range at 1080p30 H.264 with loudnorm, at ~3–4× realtime with videotoolbox, and they make stills and renders fast. Changing in/out points outside a proxy range triggers a new proxy on the next build.
+- **Transcription**: always force `--language`. Auto-detect once turned 40 minutes of Portuguese into garbage Japanese because a waiter spoke first. Loudness-based silence detection fails in noisy places, so cut from word timestamps. More in `references/talk.md`.
+- `edit-data.ts` is generated: edit `plan.json` instead. Frames in `edit-map.json` are the ground truth for "what's at 3:34".
+- Rendering takes about 2–4 min per video minute at 1080p, and much longer from raw 4K/10-bit, which is another reason for proxies. Use stills to check changes before a full re-render.
+- Keep the user's git hygiene: `.gitignore` excludes `public/footage`, `source/`, music, transcripts and `out/`. Don't commit unless asked.

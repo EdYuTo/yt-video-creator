@@ -1,13 +1,15 @@
 import React from 'react';
-import {Composition} from 'remotion';
-import {FPS} from './theme';
-import {LongForm, longFormFrames} from './LongForm';
-import {Short, shortFrames} from './Short';
+import {Composition, Still} from 'remotion';
+import {LONG, SHORT, THUMB} from './edit-data';
+import {LongForm} from './LongForm';
+import {Short} from './Short';
+import {Thumbnail} from './Thumbnail';
 
-// Both formats live in one project; render only the one(s) the user asked for.
+// Compositions appear once build_edit.py has generated data for them.
 export const RemotionRoot: React.FC = () => (
   <>
-    <Composition id="LongForm" component={LongForm} durationInFrames={longFormFrames()} fps={FPS} width={1920} height={1080} />
-    <Composition id="Short" component={Short} durationInFrames={shortFrames()} fps={FPS} width={1080} height={1920} />
+    {LONG && <Composition id="LongForm" component={LongForm} durationInFrames={LONG.total} fps={LONG.fps} width={1920} height={1080} />}
+    {THUMB && <Still id="Thumbnail" component={Thumbnail} width={1280} height={720} />}
+    {SHORT && <Composition id="Short" component={Short} durationInFrames={SHORT.total} fps={SHORT.fps} width={1080} height={1920} />}
   </>
 );

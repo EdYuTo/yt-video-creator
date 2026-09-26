@@ -1,4 +1,7 @@
 node_modules
 out
+source
 public/footage
 public/music.*
+transcripts
+faces.json

@@ -1,0 +1,958 @@
+{
+ "fps": 30,
+ "clips": {
+  "MVI_0575": {
+   "file": "MVI_0575.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0576": {
+   "file": "MVI_0576.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0577": {
+   "file": "MVI_0577.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0578": {
+   "file": "MVI_0578.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0579": {
+   "file": "MVI_0579.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0580": {
+   "file": "MVI_0580.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0581": {
+   "file": "MVI_0581.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0582": {
+   "file": "MVI_0582.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0583": {
+   "file": "MVI_0583.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0584": {
+   "file": "MVI_0584.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0585": {
+   "file": "MVI_0585.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0586": {
+   "file": "MVI_0586.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0587": {
+   "file": "MVI_0587.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0590": {
+   "file": "MVI_0590.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0591": {
+   "file": "MVI_0591.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0592": {
+   "file": "MVI_0592.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0593": {
+   "file": "MVI_0593.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0594": {
+   "file": "MVI_0594.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0595": {
+   "file": "MVI_0595.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0596": {
+   "file": "MVI_0596.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0597": {
+   "file": "MVI_0597.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0598": {
+   "file": "MVI_0598.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0606": {
+   "file": "MVI_0606.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0607": {
+   "file": "MVI_0607.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0608": {
+   "file": "MVI_0608.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0609": {
+   "file": "MVI_0609.mov",
+   "media": "link",
+   "audio": true
+  },
+  "MVI_0610": {
+   "file": "MVI_0610.mov",
+   "media": "link",
+   "audio": true
+  },
+  "phone": {
+   "file": "phone.mp4",
+   "media": "link",
+   "audio": true
+  }
+ },
+ "language": null,
+ "words": "transcripts/words.json",
+ "silence": {
+  "pad": [
+   0.2,
+   0.3
+  ],
+  "gap": 0.75
+ },
+ "loudnorm": true,
+ "blur": [],
+ "long": {
+  "intro": {
+   "kicker": "MAKE-AHEAD",
+   "title": "Chocolate\nChunk Cookies",
+   "subtitle": "Freeze the dough, bake whenever you want"
+  },
+  "listCard": {
+   "sec": 6.5,
+   "title": "You'll need",
+   "rows": [
+    [
+     "320 g",
+     "white flour"
+    ],
+    [
+     "2 pinches",
+     "salt"
+    ],
+    [
+     "1 tsp",
+     "baking powder"
+    ],
+    [
+     "225 g",
+     "butter"
+    ],
+    [
+     "220 g",
+     "brown sugar"
+    ],
+    [
+     "100 g",
+     "sugar"
+    ],
+    [
+     "2 tbsp",
+     "vanilla extract"
+    ],
+    [
+     "1–2",
+     "eggs"
+    ],
+    [
+     "240 g",
+     "chocolate, in chunks"
+    ]
+   ],
+   "photo": "footage/photo2.jpeg"
+  },
+  "sections": [
+   {
+    "items": [
+     {
+      "photo": "footage/photo1.jpeg",
+      "dur": 4
+     }
+    ]
+   },
+   {
+    "title": "Weigh everything first",
+    "items": [
+     {
+      "clip": "MVI_0576",
+      "from": 34,
+      "dur": 2.4,
+      "speed": 6,
+      "chip": {
+       "big": "225 g",
+       "small": "butter"
+      }
+     },
+     {
+      "clip": "MVI_0577",
+      "from": 30,
+      "dur": 2.4,
+      "speed": 7,
+      "chip": {
+       "big": "320 g",
+       "small": "white flour"
+      }
+     },
+     {
+      "clip": "MVI_0578",
+      "from": 38,
+      "dur": 2.4,
+      "speed": 5,
+      "chip": {
+       "big": "220 g",
+       "small": "brown sugar"
+      }
+     },
+     {
+      "clip": "MVI_0579",
+      "from": 95,
+      "dur": 2.4,
+      "speed": 5,
+      "chip": {
+       "big": "100 g",
+       "small": "sugar"
+      }
+     },
+     {
+      "clip": "MVI_0581",
+      "from": 40,
+      "dur": 2.4,
+      "speed": 4,
+      "chip": {
+       "big": "2 tbsp",
+       "small": "vanilla extract"
+      }
+     },
+     {
+      "clip": "MVI_0582",
+      "from": 50,
+      "dur": 2.4,
+      "speed": 6,
+      "chip": {
+       "big": "1–2",
+       "small": "eggs"
+      }
+     }
+    ]
+   },
+   {
+    "step": 1,
+    "title": "Melt the butter",
+    "sub": "A quick spin in the microwave",
+    "items": [
+     {
+      "clip": "MVI_0576",
+      "from": 98,
+      "dur": 2.5,
+      "speed": 3
+     }
+    ]
+   },
+   {
+    "step": 2,
+    "title": "Chop the chocolate",
+    "sub": "240 g, into chunks",
+    "items": [
+     {
+      "clip": "MVI_0580",
+      "from": 112,
+      "dur": 2.5,
+      "speed": 16
+     },
+     {
+      "clip": "MVI_0580",
+      "from": 272,
+      "dur": 2,
+      "speed": 12
+     }
+    ]
+   },
+   {
+    "step": 3,
+    "title": "Sugars + melted butter",
+    "sub": "Mix 2–3 min until smooth",
+    "items": [
+     {
+      "clip": "MVI_0583",
+      "from": 22,
+      "dur": 2.2,
+      "speed": 5
+     },
+     {
+      "clip": "MVI_0583",
+      "from": 70,
+      "dur": 2.3,
+      "speed": 12
+     }
+    ]
+   },
+   {
+    "step": 4,
+    "title": "Add eggs & vanilla",
+    "sub": "Mix again until homogeneous",
+    "items": [
+     {
+      "clip": "MVI_0583",
+      "from": 212,
+      "dur": 2,
+      "speed": 3
+     },
+     {
+      "clip": "MVI_0583",
+      "from": 300,
+      "dur": 1.5,
+      "speed": 16
+     },
+     {
+      "clip": "MVI_0583",
+      "from": 396,
+      "dur": 1.5,
+      "speed": 2
+     }
+    ]
+   },
+   {
+    "step": 5,
+    "title": "Add the salt",
+    "sub": "Two pinches, then mix",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 18,
+      "dur": 2.5,
+      "speed": 2.5
+     }
+    ]
+   },
+   {
+    "step": 6,
+    "title": "Add the flour slowly",
+    "sub": "Not all at once, so no lumps",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 86,
+      "dur": 2,
+      "speed": 4
+     },
+     {
+      "clip": "MVI_0584",
+      "from": 120,
+      "dur": 2.5,
+      "speed": 18
+     }
+    ]
+   },
+   {
+    "step": 7,
+    "title": "Fold in the chocolate",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 372,
+      "dur": 2,
+      "speed": 4
+     },
+     {
+      "clip": "MVI_0584",
+      "from": 420,
+      "dur": 2,
+      "speed": 14
+     }
+    ]
+   },
+   {
+    "step": 8,
+    "title": "Wrap & chill",
+    "sub": "30 min minimum, overnight is best",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 544,
+      "dur": 3,
+      "speed": 8
+     },
+     {
+      "clip": "MVI_0585",
+      "from": 6,
+      "dur": 3.5,
+      "speed": 4.5
+     }
+    ]
+   },
+   {
+    "step": 9,
+    "title": "Roll into balls, then freeze",
+    "items": [
+     {
+      "clip": "MVI_0586",
+      "from": 60,
+      "dur": 2.5,
+      "speed": 20
+     },
+     {
+      "clip": "MVI_0586",
+      "from": 200,
+      "dur": 2.5,
+      "speed": 22
+     },
+     {
+      "clip": "MVI_0586",
+      "from": 490,
+      "dur": 1.5,
+      "speed": 4
+     },
+     {
+      "clip": "MVI_0587",
+      "from": 4,
+      "dur": 3,
+      "speed": 3.5
+     }
+    ]
+   },
+   {
+    "title": "Whenever the craving hits…",
+    "sub": "Straight from the freezer, no thawing",
+    "items": [
+     {
+      "clip": "MVI_0590",
+      "from": 18,
+      "dur": 4.5,
+      "speed": 2.4
+     },
+     {
+      "clip": "MVI_0591",
+      "from": 25,
+      "dur": 1.75,
+      "speed": 12
+     },
+     {
+      "clip": "MVI_0591",
+      "from": 90,
+      "dur": 1.75,
+      "speed": 10
+     }
+    ]
+   },
+   {
+    "step": 10,
+    "title": "Bake at 200 °C",
+    "sub": "20–25 minutes",
+    "counter": {
+     "from": 0,
+     "to": 22,
+     "max": 25,
+     "format": "min",
+     "label": "200 °C"
+    },
+    "items": [
+     {
+      "clip": "MVI_0592",
+      "from": 18,
+      "dur": 2,
+      "speed": 3
+     },
+     {
+      "clip": "MVI_0592",
+      "from": 30,
+      "dur": 3,
+      "speed": 25
+     },
+     {
+      "clip": "MVI_0596",
+      "from": 6,
+      "dur": 2.2,
+      "speed": 5
+     },
+     {
+      "clip": "MVI_0597",
+      "from": 14,
+      "dur": 1.8,
+      "speed": 2.5
+     }
+    ]
+   },
+   {
+    "items": [
+     {
+      "clip": "MVI_0598",
+      "from": 0,
+      "dur": 2,
+      "speed": 4
+     },
+     {
+      "clip": "MVI_0598",
+      "from": 100,
+      "dur": 3
+     }
+    ]
+   },
+   {
+    "title": "The best part",
+    "items": [
+     {
+      "clip": "phone",
+      "from": 0,
+      "dur": 5.5,
+      "speed": 1.3,
+      "fit": "blur"
+     },
+     {
+      "clip": "MVI_0610",
+      "from": 68,
+      "dur": 3.2
+     },
+     {
+      "clip": "phone",
+      "from": 35,
+      "dur": 3.3,
+      "fit": "blur"
+     }
+    ]
+   },
+   {
+    "items": [
+     {
+      "photo": "footage/photo1.jpeg",
+      "dur": 1.1
+     },
+     {
+      "photo": "footage/photo2.jpeg",
+      "dur": 1.1
+     },
+     {
+      "photo": "footage/photo4.jpeg",
+      "dur": 1.1
+     },
+     {
+      "photo": "footage/photo5.jpeg",
+      "dur": 1.1
+     }
+    ]
+   },
+   {
+    "title": "Official taste tester",
+    "sub": "Waiting for crumbs",
+    "items": [
+     {
+      "clip": "phone",
+      "from": 47.5,
+      "dur": 3.5,
+      "fit": "blur"
+     }
+    ]
+   }
+  ],
+  "outro": {
+   "sec": 7,
+   "photo": "footage/photo5.jpeg",
+   "columns": [
+    {
+     "title": "Ingredients",
+     "items": [
+      "320 g white flour",
+      "2 pinches salt",
+      "1 tsp baking powder",
+      "225 g butter",
+      "220 g brown sugar",
+      "100 g sugar",
+      "2 tbsp vanilla extract",
+      "1–2 eggs",
+      "240 g chocolate, in chunks"
+     ]
+    },
+    {
+     "title": "Method",
+     "numbered": true,
+     "items": [
+      "Melt the butter in the microwave.",
+      "Cut the chocolate into pieces.",
+      "Mix both sugars with the melted butter for 2–3 min, until smooth.",
+      "Add eggs and vanilla; mix until homogeneous.",
+      "Add salt and mix.",
+      "Add the flour slowly, a little at a time, to avoid lumps.",
+      "Fold in the chocolate pieces.",
+      "Wrap in plastic and chill at least 30 min (overnight is best).",
+      "Roll into balls and freeze.",
+      "Bake straight from the freezer: 200 °C for 20–25 min."
+     ]
+    }
+   ]
+  },
+  "music": {
+   "file": "music.mp3",
+   "mode": "bed",
+   "volume": 0.8,
+   "matchSong": true
+  }
+ },
+ "short": {
+  "music": {
+   "file": "music.mp3",
+   "startSec": 27.7,
+   "beat": 0.566,
+   "offset": 0.05,
+   "tail": 0.4,
+   "volume": 0.85
+  },
+  "sections": [
+   {
+    "big": "Freezer cookies",
+    "small": "bake one whenever you want",
+    "items": [
+     {
+      "clip": "phone",
+      "from": 7.5,
+      "beats": 6,
+      "fit": "blur"
+     }
+    ]
+   },
+   {
+    "big": "225 g",
+    "small": "butter",
+    "items": [
+     {
+      "clip": "MVI_0576",
+      "from": 45,
+      "beats": 2,
+      "speed": 3,
+      "x": 47
+     }
+    ]
+   },
+   {
+    "big": "320 g",
+    "small": "flour",
+    "items": [
+     {
+      "clip": "MVI_0577",
+      "from": 34,
+      "beats": 2,
+      "speed": 5,
+      "x": 46
+     }
+    ]
+   },
+   {
+    "big": "220 g",
+    "small": "brown sugar",
+    "items": [
+     {
+      "clip": "MVI_0578",
+      "from": 42,
+      "beats": 2,
+      "speed": 4,
+      "x": 49
+     }
+    ]
+   },
+   {
+    "big": "100 g",
+    "small": "sugar",
+    "items": [
+     {
+      "clip": "MVI_0579",
+      "from": 97,
+      "beats": 2,
+      "speed": 4,
+      "x": 48
+     }
+    ]
+   },
+   {
+    "big": "2 tbsp",
+    "small": "vanilla",
+    "items": [
+     {
+      "clip": "MVI_0581",
+      "from": 44,
+      "beats": 2,
+      "speed": 4,
+      "x": 49
+     }
+    ]
+   },
+   {
+    "big": "1–2",
+    "small": "eggs",
+    "items": [
+     {
+      "clip": "MVI_0582",
+      "from": 64,
+      "beats": 2,
+      "speed": 4,
+      "x": 38
+     }
+    ]
+   },
+   {
+    "big": "240 g",
+    "small": "chocolate, chopped",
+    "items": [
+     {
+      "clip": "MVI_0580",
+      "from": 116,
+      "beats": 3,
+      "speed": 12,
+      "x": 44
+     }
+    ]
+   },
+   {
+    "big": "Mix",
+    "small": "sugars + melted butter",
+    "items": [
+     {
+      "clip": "MVI_0583",
+      "from": 26,
+      "beats": 2,
+      "speed": 4,
+      "x": 43
+     },
+     {
+      "clip": "MVI_0583",
+      "from": 80,
+      "beats": 2,
+      "speed": 12,
+      "x": 43
+     }
+    ]
+   },
+   {
+    "big": "+ eggs",
+    "small": "& vanilla",
+    "items": [
+     {
+      "clip": "MVI_0583",
+      "from": 213,
+      "beats": 3,
+      "speed": 3,
+      "x": 31
+     }
+    ]
+   },
+   {
+    "big": "+ salt",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 19,
+      "beats": 2,
+      "speed": 3,
+      "x": 48
+     }
+    ]
+   },
+   {
+    "big": "+ flour",
+    "small": "a little at a time",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 88,
+      "beats": 2,
+      "speed": 4,
+      "x": 42
+     },
+     {
+      "clip": "MVI_0584",
+      "from": 125,
+      "beats": 2,
+      "speed": 16,
+      "x": 48
+     }
+    ]
+   },
+   {
+    "big": "+ chocolate",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 374,
+      "beats": 3,
+      "speed": 4,
+      "x": 40
+     }
+    ]
+   },
+   {
+    "big": "Chill",
+    "small": "30 min+ (overnight is best)",
+    "items": [
+     {
+      "clip": "MVI_0584",
+      "from": 552,
+      "beats": 2,
+      "speed": 8,
+      "x": 45
+     },
+     {
+      "clip": "MVI_0585",
+      "from": 8,
+      "beats": 3,
+      "speed": 6,
+      "x": 68
+     }
+    ]
+   },
+   {
+    "big": "Roll",
+    "small": "into balls",
+    "items": [
+     {
+      "clip": "MVI_0586",
+      "from": 65,
+      "beats": 3,
+      "speed": 20,
+      "x": 55
+     },
+     {
+      "clip": "MVI_0586",
+      "from": 496,
+      "beats": 2,
+      "speed": 4,
+      "x": 54
+     }
+    ]
+   },
+   {
+    "big": "Freeze",
+    "items": [
+     {
+      "clip": "MVI_0587",
+      "from": 6,
+      "beats": 3,
+      "speed": 4,
+      "x": 62
+     }
+    ]
+   },
+   {
+    "big": "Craving?",
+    "small": "bake straight from frozen",
+    "items": [
+     {
+      "clip": "MVI_0590",
+      "from": 27,
+      "beats": 3,
+      "speed": 4,
+      "x": 42
+     }
+    ]
+   },
+   {
+    "big": "200 °C",
+    "small": "20–25 min",
+    "items": [
+     {
+      "clip": "MVI_0592",
+      "from": 21.5,
+      "beats": 2,
+      "speed": 3,
+      "x": 40
+     },
+     {
+      "clip": "MVI_0592",
+      "from": 30,
+      "beats": 3,
+      "speed": 30,
+      "x": 40
+     },
+     {
+      "clip": "MVI_0597",
+      "from": 14.5,
+      "beats": 2,
+      "speed": 2,
+      "x": 30
+     }
+    ]
+   },
+   {
+    "items": [
+     {
+      "clip": "MVI_0598",
+      "from": 101,
+      "beats": 3,
+      "x": 58
+     }
+    ]
+   },
+   {
+    "items": [
+     {
+      "clip": "MVI_0610",
+      "from": 69,
+      "beats": 4,
+      "x": 50
+     },
+     {
+      "clip": "phone",
+      "from": 36,
+      "beats": 2,
+      "fit": "blur"
+     }
+    ]
+   },
+   {
+    "big": "Taste tester",
+    "small": "approved",
+    "items": [
+     {
+      "clip": "phone",
+      "from": 47.5,
+      "beats": 4,
+      "fit": "blur"
+     }
+    ]
+   }
+  ],
+  "end": {
+   "beats": 4,
+   "photo": "footage/photo2.jpeg",
+   "big": "Full recipe\nin the caption",
+   "small": "save it for later"
+  }
+ }
+}
