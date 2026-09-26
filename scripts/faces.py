@@ -2,7 +2,7 @@
 """Privacy check: find faces in a render and map them to shots, for blur decisions.
 Run with the venv python from setup_speech.sh (needs opencv-python-headless + the YuNet model).
 
-  faces.py scan   <render.mp4> --project <proj> [--comp long] [--every 10] [--score 0.55]
+  faces.py scan   <render.mp4> --project <proj> [--comp long] [--every 10] [--score 0.55] [--edges]
       -> <proj>/faces.json and a per-shot summary: sample count, max faces per frame, face centers.
   faces.py review <render.mp4> --project <proj> --out review.jpg [--times 12.3,45.6] [--xmin 0.55]
       -> tiles of flagged frames with red boxes. Default flags: >1 face in frame, or a face with
@@ -11,7 +11,11 @@ Run with the venv python from setup_speech.sh (needs opencv-python-headless + th
 
 Then put blur boxes in plan.json ("blur": [{clip, from, to, rects: [[x,y,w,h] %]}], source time,
 from the shot's srcClip) or replace the shot, rebuild, re-render, and scan again.
-Limits to tell the user: misses profiles and faces at the frame edge; boxes are static per shot.
+--edges adds a second pass for people half out of frame (the classic miss: a friend leaning in from the
+side, in profile, mostly hair): the left 30% and right 38% strips are edge-padded, upscaled 2x and
+scanned at score 0.35. Many more false positives (bottles, hands, food) — review them — but it found a
+friend the normal pass missed. Use it whenever someone besides the creator sat near the camera.
+Limits to tell the user: can still miss profiles/backs of heads; boxes are static per shot.
 """
 import argparse
 import json
@@ -31,6 +35,7 @@ ap.add_argument("--score", type=float, default=0.55)
 ap.add_argument("--out", default="review.jpg")
 ap.add_argument("--times")
 ap.add_argument("--xmin", type=float, default=0.55)
+ap.add_argument("--edges", action="store_true")
 a = ap.parse_args()
 P = os.path.abspath(a.project)
 fj = os.path.join(P, "faces.json")
@@ -51,17 +56,34 @@ if a.mode == "scan":
     W = 960
     H = int(W * cap.get(cv2.CAP_PROP_FRAME_HEIGHT) / cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     det = cv2.FaceDetectorYN.create(MODEL, "", (W, H), a.score, 0.3, 5000)
+    PAD = 40
+
+    def edge_boxes(small):
+        out = []
+        for x0, x1 in ((0, int(W * 0.30)), (int(W * 0.62), W)):
+            crop = cv2.copyMakeBorder(small[:, x0:x1], PAD, PAD, PAD, PAD, cv2.BORDER_REPLICATE)
+            up = cv2.resize(crop, None, fx=2, fy=2)
+            d = cv2.FaceDetectorYN.create(MODEL, "", (up.shape[1], up.shape[0]), 0.35, 0.3, 50)
+            _, fs = d.detect(up)
+            for x, y, w, h, *fc in (fs.tolist() if fs is not None else []):
+                bx, by = x / 2 - PAD + x0, y / 2 - PAD
+                out.append([round(max(0, bx) / W, 3), round(max(0, by) / H, 3), round(w / 2 / W, 3), round(h / 2 / H, 3), round(float(fc[-1]), 2), "edge"])
+        return out
+
     hits, f = [], 0
     while cap.grab():
         if f % a.every == 0:
             _, img = cap.retrieve()
-            _, faces = det.detect(cv2.resize(img, (W, H)))
-            if faces is not None:
+            small = cv2.resize(img, (W, H))
+            _, faces = det.detect(small)
+            boxes = [[round(x / W, 3), round(y / H, 3), round(w / W, 3), round(h / H, 3), round(float(fc[-1]), 2)]
+                     for x, y, w, h, *fc in (faces.tolist() if faces is not None else [])]
+            if a.edges:
+                boxes += [b for b in edge_boxes(small) if b[0] + b[2] / 2 < 0.14 or b[0] + b[2] / 2 > 0.72]
+            if boxes:
                 t = f / fps
                 r = shot_at(t)
-                hits.append(dict(t=round(t, 2), frame=f, clip=r["clip"], kind=r["kind"], local=round(t - r["start"], 2),
-                                 boxes=[[round(x / W, 3), round(y / H, 3), round(w / W, 3), round(h / H, 3), round(float(fc[-1]), 2)]
-                                        for x, y, w, h, *fc in faces.tolist()]))
+                hits.append(dict(t=round(t, 2), frame=f, clip=r["clip"], kind=r["kind"], local=round(t - r["start"], 2), boxes=boxes))
         f += 1
     json.dump(hits, open(fj, "w"))
     print(f"{f} frames, {len(hits)} sampled frames with faces -> {fj}")
@@ -78,7 +100,15 @@ else:
         want = [float(x) for x in a.times.split(",")]
         sel = [min(hits, key=lambda h: abs(h["t"] - t)) for t in want]
     else:
-        sel = [h for h in hits if len(h["boxes"]) > 1 or any(b[0] + b[2] / 2 >= a.xmin or b[0] + b[2] / 2 < 0.08 for b in h["boxes"])]
+        sel = [h for h in hits if len(h["boxes"]) > 1 or any(len(b) > 5 or b[0] + b[2] / 2 >= a.xmin or b[0] + b[2] / 2 < 0.08 for b in h["boxes"])]
+        # one frame per burst (hits < 1 s apart), keeping the highest-scoring frame, so reviews stay readable
+        runs = []
+        for h in sel:
+            if runs and h["t"] - runs[-1][-1]["t"] <= 1.0:
+                runs[-1].append(h)
+            else:
+                runs.append([h])
+        sel = [max(r, key=lambda h: max(b[4] for b in h["boxes"])) for r in runs]
     cap = cv2.VideoCapture(a.video)
     W, cols = 320, 6
     tiles = []
@@ -90,8 +120,8 @@ else:
         Hh = int(W * img.shape[0] / img.shape[1])
         im = Image.fromarray(cv2.cvtColor(cv2.resize(img, (W, Hh)), cv2.COLOR_BGR2RGB))
         d = ImageDraw.Draw(im)
-        for x, y, w, hh, s in h["boxes"]:
-            d.rectangle([x * W, y * Hh, (x + w) * W, (y + hh) * Hh], outline="red", width=2)
+        for x, y, w, hh, s, *tag in h["boxes"]:
+            d.rectangle([x * W, y * Hh, (x + w) * W, (y + hh) * Hh], outline="orange" if tag else "red", width=2)
         d.rectangle([0, 0, 170, 13], fill="black")
         d.text((2, 1), f"{h['t']:.1f}s {h['clip']}", fill="yellow")
         tiles.append(im)
