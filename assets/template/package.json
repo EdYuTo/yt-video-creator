@@ -1,0 +1,11 @@
+{
+  "name": "video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render:long": "remotion render LongForm out/long.mp4",
+    "render:short": "remotion render Short out/short.mp4",
+    "typecheck": "tsc -p ."
+  }
+}
