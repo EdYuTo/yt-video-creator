@@ -63,7 +63,20 @@ scripts/
   audio_levels.py         per-segment loudness of a render
 assets/template/          Remotion project: LongForm (1920x1080) + Short (1080x1920), render.mjs, stills.mjs
 examples/cookie/          plan.json behind the example videos
+stream-highlights/        companion skill: stream VOD -> set of Shorts
 ```
+
+## stream-highlights (companion skill)
+
+[`stream-highlights/`](stream-highlights/) mines a long stream recording (a Twitch or YouTube VOD, hours long) for its most engaging moments and cuts a **set** of vertical Shorts. It decodes the audio once, transcribes the whole VOD locally, ranks 30-second windows by what's said and how loud it is, detects the facecam, and renders each moment with facecam and gameplay layouts, word-synced karaoke captions, hook titles, punch-in/shake/sticker effects and freeze-frame punchlines. It also writes a report with titles, captions, hashtags and risks per clip. It reuses this skill's scripts and template.
+
+Install it next to this one:
+
+```bash
+ln -s ~/.claude/skills/yt-video-creator/stream-highlights ~/.claude/skills/stream-highlights
+```
+
+> make shorts from my twitch vod in ~/Videos/vod, find the moments that could go viral
 
 ## Music
 

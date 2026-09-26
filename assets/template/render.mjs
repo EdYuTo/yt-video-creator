@@ -1,5 +1,6 @@
 // Render a composition, keeping every previous version.
-//   node render.mjs <CompositionId> <out/file.mp4|.jpg> [--note "why this render"]
+//   node render.mjs <CompositionId> <out/file.mp4|.jpg> [--note "why this render"] [--plan plan.json]
+// --plan: the edit file snapshotted with each version (default plan.json; stream shorts use shorts.json).
 // A Still (e.g. Thumbnail) renders to a JPEG.
 //
 // Versioning (never lose a render the user may already have reviewed or uploaded):
@@ -20,9 +21,11 @@ import path from 'path';
 const args = process.argv.slice(2);
 const noteAt = args.indexOf('--note');
 const note = noteAt >= 0 ? args.splice(noteAt, 2)[1] : '';
+const planAt = args.indexOf('--plan');
+const planFile = planAt >= 0 ? args.splice(planAt, 2)[1] : 'plan.json';
 const [id, output] = args;
 if (!id || !output) {
-  console.error('usage: node render.mjs <CompositionId> <out/file.ext> [--note "..."]');
+  console.error('usage: node render.mjs <CompositionId> <out/file.ext> [--note "..."] [--plan plan.json]');
   process.exit(1);
 }
 
@@ -71,7 +74,7 @@ if (fs.existsSync(output)) {
   if (fs.existsSync(planSnap)) fs.renameSync(planSnap, path.join(versions, `${name}-v${n}.plan.json`));
 }
 fs.renameSync(tmp, output);
-if (fs.existsSync('plan.json')) fs.copyFileSync('plan.json', planSnap);
+if (fs.existsSync(planFile)) fs.copyFileSync(planFile, planSnap);
 
 const logPath = path.join(versions, 'log.jsonl');
 fs.mkdirSync(versions, {recursive: true});
