@@ -116,12 +116,12 @@ node stills.mjs LongForm <scratch>/stills <frame> <frame> ...   # frames: see ed
 ```bash
 cd <proj> && npm run render:long      # or render:short; runs in the background, minutes to ~15 min
 ```
-Always render with `render.mjs` (the npm scripts). `npx remotion render` copies all of `public/` on every render.
+Always render with `render.mjs` (the npm scripts): it keeps previous versions (see "Protect the user's work"), and `npx remotion render` both overwrites the output and copies all of `public/` on every render.
 
 Then verify the output. Don't skip this: it's where the real bugs show up.
 - **Picture**: `sheets.py fine out/long.mp4 0-<dur>:2 --width 180 --cols 10`. Look for pre-action or empty shots, subjects cropped out, text overlapping the subject or subtitles, and overflow.
 - **Sound** (talk videos): `audio_levels.py out/long.mp4 --project <proj>`. Talk should be around −20 dBFS, music-only b-roll 6–8 dB below it, and the peak under −1 dBFS.
-- **Privacy** (anyone besides the creator on camera): `$VENV_PY faces.py scan out/long.mp4 --project <proj>`, then `faces.py review ...` and look at the tiles. About half of the hits are hands, glasses or food. Add `blur` boxes (source time) or replace the shot, rebuild, re-render and re-scan. Tell the user the detector misses profiles and that boxes are static, and point them to the timestamps worth watching.
+- **Privacy** (anyone besides the creator on camera): `$VENV_PY faces.py scan out/long.mp4 --project <proj> --edges`, then `faces.py review ...` and look at the tiles. `--edges` catches people half out of frame (a friend leaning in from the side, in profile, mostly hair), which the plain scan missed in practice. For every real hit, check the neighbouring seconds with crops of that edge: people lean in and out. About half of the hits are hands, glasses or food. Add `blur` boxes (source time) or replace the shot, rebuild, re-render and re-scan. Tell the user the detector misses profiles and that boxes are static, and point them to the timestamps worth watching.
 - Confirm the specs with ffprobe (resolution, duration, audio stream).
 
 **Thumbnail** (offer it for every long-form video): a reaction face plus the subject (the dish, the build) makes a strong 2-panel split. Scan the talk windows around the best reaction with `sheets.py fine`, then grab full-res frames with ffmpeg and crop to the face to compare expressions. Use a ≤4-word title and an optional hook badge, but only claims the footage backs up (a price from the transcript, not a guess). Add a `thumbnail` block (`references/plan.md`), `npm run build`, `npm run render:thumb`, and look at the result.
@@ -133,9 +133,19 @@ Tell the user:
 - the structure (sections with source clip@time, what was kept and cut and why);
 - the music handling;
 - assumptions, missing footage, privacy fixes and where to double-check;
-- how to tweak it: edit `plan.json` → `npm run build` → `npm run render:long`, or `npm run studio` to preview.
+- how to tweak it: edit `plan.json` → `npm run build` → `npm run render:long`, or `npm run studio` to preview;
+- after a re-render, which previous version was kept in `out/versions/` (and that you'll delete it only if asked).
 
 Offer a ready-to-paste YouTube description (recipe or steps, music credit). For a Short, give the post caption.
+
+## Protect the user's work
+
+People review, upload and share renders while you work, so a file you "just regenerate" may be the one they already published.
+- **Never overwrite or delete an existing render, thumbnail or user file.** Always render through `render.mjs` (the npm scripts). It renders to a temp file, and only on success moves the previous output to `out/versions/<name>-vN.<ext>` with the `plan.json` snapshot that produced it, then logs the render in `out/versions/log.jsonl`. Pass `--note "what changed"` so the log explains each version: `npm run render:long -- --note "blur friend at 1:07"`.
+- **Old versions are deleted only when the user asks**, for example after they confirm the new one ("this one is perfect, delete the backup"). When you report a re-render, name the kept previous version and its size so they can decide.
+- **Outside a project scaffolded by this skill** (an older project, one made by another agent, the user's own files), back up before replacing anything: e.g. `mv out/video.mp4 out/video-prev.mp4`. Say so in the report.
+- The originals in the footage folder are read-only for you. `source/` only links to them, and `setup_project.sh` refuses to scaffold over an existing project.
+- To go back to an earlier edit, restore `out/versions/<name>-vN.plan.json` as `plan.json`, then `npm run build` and render. First make sure the current plan is saved: it is if it was rendered (`out/<name>.plan.json`); otherwise copy it aside.
 
 ## Gotchas (all hit in practice)
 

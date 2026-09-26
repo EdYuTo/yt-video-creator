@@ -38,9 +38,9 @@ The skill asks for the format, length, language, music, whether talk matters and
 1. **Scaffold**: a Remotion project inside the footage folder links the originals, probes them (codec, bit depth, fps) and decides per clip whether to use it directly or make proxies of only the used ranges (10-bit HEVC, 4K, 60p).
 2. **See and hear**: timestamped contact sheets show Claude the footage; local transcripts give it the conversations.
 3. **Plan**: the edit is written as `plan.json` in source time. `build_edit.py` does all the frame math: silence-cutting dialogue from word timestamps, placing subtitles, music runs and beat-synced cuts for Shorts, and writing proxies.
-4. **Render and verify**: stills per section, a full render (`render.mjs` symlinks `public/` instead of copying tens of GB), then a frame-by-frame sheet of the output, per-segment audio levels, and a face scan for anyone who should be blurred.
+4. **Render and verify**: stills per section, a full render (`render.mjs` versions every output and symlinks `public/` instead of copying tens of GB), then a frame-by-frame sheet of the output, per-segment audio levels, and a face scan (including an edge pass for people half out of frame) for anyone who should be blurred.
 
-To change the result, edit `plan.json`, then run `npm run build` and `npm run render:long` (or `render:short`), or preview with `npm run studio`.
+To change the result, edit `plan.json`, then run `npm run build` and `npm run render:long` (or `render:short`, `render:thumb`), or preview with `npm run studio`. Renders never overwrite each other: the previous output moves to `out/versions/` with the plan that produced it, and each render is logged (add `-- --note "what changed"`).
 
 ## Layout
 
