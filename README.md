@@ -83,4 +83,4 @@ examples/cookie/          plan.json behind the example videos
 
 ## Music
 
-Use tracks you own or that are free for YouTube, such as the [YouTube Audio Library](https://studio.youtube.com/). The skill won't download audio from YouTube links: it looks up the title and asks you to download the track from its source.
+Use tracks you own or that are free for YouTube, such as the [YouTube Audio Library](https://www.youtube.com/audiolibrary). The skill won't download audio from YouTube links: it looks up the title and asks you to download the track from its source.

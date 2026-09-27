@@ -18,7 +18,7 @@
 - Square or vertical phone clips: square uses `fit: 'blur'`; vertical fills natively.
 
 ## Music
-- Prefer tracks the user owns or that are free for YouTube (YouTube Audio Library). Content ID claims can block or demonetize uploads. Credit the track in the credits and description even when it isn't required.
+- Prefer tracks the user owns or that are free for YouTube ([YouTube Audio Library](https://www.youtube.com/audiolibrary)). Content ID claims can block or demonetize uploads. Credit the track in the credits and description even when it isn't required.
 - Music-driven long-form (`mode: "bed"`): fade in over 0.5 s and out over the last 2 s. Ideally the video length equals the song length (`matchSong`) so it ends naturally.
 - Talk long-form (`mode: "broll"`): music only under b-roll and cards, around 0.15 volume, never under speech. See references/talk.md.
 - Short: start at a strong downbeat (after a break) and end on a phrase decay. A short fade (~0.4 s) avoids a click.
