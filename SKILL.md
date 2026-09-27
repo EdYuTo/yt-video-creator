@@ -46,7 +46,7 @@ Ask everything in one multi-question prompt. Skip whatever the user already told
 - **Format**: YouTube long-form 16:9 (the default), a Short 9:16, or both. "Whatever's best for YouTube" means long-form unless the footage is under ~1 min.
 - **Length**: process video 2–4 min; talk/vlog 5–10 min; a Short 30–45 s.
 - **On-screen text / subtitle language.**
-- **Music**: a file the user supplies, or none. For a YouTube link, look up the title (`https://www.youtube.com/oembed?url=<link>&format=json` via WebFetch). Don't download it: ripping audio from YouTube breaks its terms, and a copyrighted track can get the upload claimed. YouTube Audio Library tracks are free; the user downloads the file and saves it as `public/music.mp3`. Keep working meanwhile.
+- **Music**: a file the user supplies, or none. For a YouTube link, look up the title (`https://www.youtube.com/oembed?url=<link>&format=json` via WebFetch). Don't download it: ripping audio from YouTube breaks its terms, and a copyrighted track can get the upload claimed. YouTube Audio Library tracks (https://www.youtube.com/audiolibrary) are free; the user downloads the file there and saves it as `public/music.mp3`. Keep working meanwhile.
 - **Talk**: does the footage have conversation that matters, and in which language(s)? This switches on the dialogue workflow.
 - **Other people on camera**: should bystanders or friends who didn't consent be blurred? Default to blurring faces that aren't the creator.
 - **Story details** the footage can't tell you: a recipe, steps, place names, what matters, funny moments to keep (e.g. bloopers).
