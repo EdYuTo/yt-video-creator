@@ -51,8 +51,9 @@ def grab(path, t, width):
     except Exception:
         im = Image.new("RGB", (width, width * 9 // 16), "gray")
     d = ImageDraw.Draw(im)
-    d.rectangle([0, 0, 64, 15], fill="black")
-    d.text((3, 2), f"{int(t // 60)}:{t % 60:04.1f}", fill="yellow")
+    label = f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:04.1f}" if t >= 3600 else f"{int(t // 60)}:{t % 60:04.1f}"
+    d.rectangle([0, 0, 8 + 6 * len(label), 15], fill="black")
+    d.text((3, 2), label, fill="yellow")
     return im
 
 

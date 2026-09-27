@@ -1,0 +1,48 @@
+{
+ "_doc": "Source times in seconds into the VOD. Full format: stream-highlights/references/plan.md. cam from detect_cam.py (source px).",
+ "src": "vod.mp4",
+ "fps": 30,
+ "cam": [2014, 0, 546, 448],
+ "loudnorm": "I=-14:TP=-1.5:LRA=11",
+ "words": "transcripts/words.json",
+ "camBlur": [],
+ "gameBlur": [],
+ "shorts": [
+  {
+   "id": "short-01",
+   "tag": "STORYTIME",
+   "hook": {"text": "SHOULD I\nRISK IT?", "sub": "the worst bet of the stream", "sec": 2.4},
+   "cuts": [
+    {"s": 5400.8, "e": 5403.0, "layout": "face", "blurGame": true},
+    {"s": 5418.9, "e": 5430.4, "layout": "face", "blurGame": true},
+    {"s": 5431.2, "e": 5450.6, "layout": "face", "blurGame": true}
+   ],
+   "hl": ["risk", "bet", "cured"],
+   "fx": [
+    {"t": 5428.3, "kind": "punch", "len": 0.7},
+    {"t": 5429.7, "kind": "punch", "len": 0.9, "strength": 0.3, "text": "ALL IN"},
+    {"t": 5441.4, "kind": "flash", "len": 0.3},
+    {"t": 5444.8, "kind": "punch", "len": 1.2, "text": "CURED!"}
+   ],
+   "outro": {"text": "CURED\n(I think)", "sec": 1.4}
+  },
+  {
+   "id": "short-02",
+   "tag": "CS2",
+   "hook": {"text": "TOP OF THE\nSCOREBOARD", "sub": "…of the losing team", "sec": 2.2},
+   "cuts": [
+    {"s": 1575.0, "e": 1583.5, "layout": "stack", "gameX": 0.5},
+    {"s": 1584.2, "e": 1601.0, "layout": "stack", "gameX": 0.45},
+    {"s": 1601.0, "e": 1609.5, "layout": "face"}
+   ],
+   "hl": ["first", "comeback"],
+   "fix": {"stab": "TAB"},
+   "fx": [
+    {"t": 1586.0, "kind": "punch", "len": 0.6, "text": "COMEBACK?"},
+    {"t": 1600.2, "kind": "shake", "len": 0.6, "strength": 22},
+    {"t": 1603.0, "kind": "punch", "len": 1.0, "strength": 0.3}
+   ],
+   "outro": {"text": "COMEBACK\nCANCELLED", "sec": 1.5}
+  }
+ ]
+}
