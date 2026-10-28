@@ -58,6 +58,29 @@ The skill asks for the format, length, language, music, whether talk matters and
 
 To change the result, edit `plan.json`, then run `npm run build` and `npm run render:long` (or `render:short`, `render:thumb`), or preview with `npm run studio`. Renders never overwrite each other: the previous output moves to `out/versions/` with the plan that produced it, and each render is logged (add `-- --note "what changed"`).
 
+## Influencer reels (second skill in this repo)
+
+[`influencer/`](influencer/SKILL.md) is a separate skill for **scripted talking-head reels** on any topic (Instagram Reels, TikTok, Shorts). It doesn't start from footage. It starts from an idea:
+
+1. **Research and script.** Claude fact-checks the claims on the web and writes each reel in the creator's own voice, using a rambling first take or old videos as the voice sample. The creator reads the script before anything is recorded.
+2. **Karaoke teleprompter.** A page on `localhost` shows the script with the current word lit up and records camera and mic together. Tap the screen to redo a line. Nothing leaves the machine.
+3. **Clean takes.** Local Whisper word timings, re-checked with a vocabulary hint (so English terms inside Portuguese come out right), pick the last good take of every line and cut the pauses.
+4. **Head bubble.** The creator is cut out of their background locally (Apple Vision) and placed in a Presenter-Overlay-style circle, with the hair breaking out over the rim.
+5. **Demos at 9:16.** Playwright drives a real, logged-in Chrome at phone width and records crisp 1080×1920 clips, timed to each spoken line. Code is shown on a highlightable code page, and old screen recordings are cropped and pushed in.
+6. **Composite.** The demo fills the frame, the bubble floats on top, and subtitles (in the spoken language or translated) plus hand-drawn notes, ticked lists and bars are drawn in. No music unless asked.
+
+Install it next to the main skill (it uses this repo's `scripts/` and `assets/`):
+
+```bash
+ln -s ~/.claude/skills/yt-video-creator/influencer ~/.claude/skills/influencer
+```
+
+Each reels project also needs `npm i -D playwright highlight.js && npx playwright install chromium` (the skill runs it when it scaffolds), and Google Chrome for the demos. It is **macOS-only** for now: the head bubble uses Apple Vision, the hinted re-transcription mlx-whisper (Apple Silicon), and the login step opens Chrome with `open`.
+
+> make a series of reels teaching beginners how to edit photos on their phone, in my voice, with demos of the apps' websites
+
+On machines where Remotion's default port is taken, or where a Chrome headless build hangs, set `REMOTION_PORT` and `REMOTION_BROWSER` before rendering.
+
 ## Layout
 
 ```

@@ -63,7 +63,13 @@ export const ShotView: React.FC<{shot: Shot; gray?: boolean; index?: number}> = 
       </AbsoluteFill>
     );
   }
-  const framed = {...cover, objectPosition: `${shot.x ?? 50}% ${shot.y ?? 50}%`};
+  // zoom scales past objectFit:cover around the same anchor, so x/y still mean 'what to keep'
+  const z = shot.zoom ?? 1;
+  const framed: React.CSSProperties = {
+    ...cover,
+    objectPosition: `${shot.x ?? 50}% ${shot.y ?? 50}%`,
+    ...(z === 1 ? {} : {transform: `scale(${z})`, transformOrigin: `${shot.x ?? 50}% ${shot.y ?? 50}%`}),
+  };
   return (
     <AbsoluteFill style={{filter}}>
       {video(framed, true)}

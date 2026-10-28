@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Teleprompter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --accent: #D9913F; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #111; color: #eee; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  .controls { position: fixed; top: 0; left: 0; right: 0; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 12px 20px; background: #1b1b1b; font-size: 16px; z-index: 5; }
+  .controls label { display: flex; gap: 8px; align-items: center; color: #aaa; }
+  .controls select, .controls button { font: inherit; background: #2a2a2a; color: #eee; border: 1px solid #444; border-radius: 6px; padding: 6px 10px; }
+  button#rec { background: var(--accent); color: #111; border-color: var(--accent); font-weight: 700; padding: 8px 22px; }
+  button#stop { background: #b33; border-color: #b33; font-weight: 700; padding: 8px 22px; display: none; }
+  body.recording button#rec, body.counting button#rec { display: none; }
+  body.recording button#stop { display: inline-block; }
+  body.recording .lock, body.counting .lock { opacity: .4; pointer-events: none; }
+  #msg { color: #ff8a6b; font-size: 18px; }
+  #stage { position: fixed; inset: 0; display: none; flex-direction: column; justify-content: center; padding: 8vh 6vw; }
+  body.recording #stage, body.counting #stage { display: flex; }
+  .line { font-size: max(64px, 5.2vw); line-height: 1.25; font-weight: 600; }
+  #cur .w { color: #666; }
+  #cur .w.past { color: #f2f2f2; }
+  #cur .w.now { color: var(--accent); }
+  #next { margin-top: 5vh; color: #555; font-size: max(64px, 4.6vw); }
+  #count { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; font-size: 28vh; font-weight: 800; color: var(--accent); z-index: 4; background: #111; }
+  body.counting #count { display: flex; }
+  #preview { position: fixed; right: 16px; bottom: 16px; width: 240px; border-radius: 8px; transform: scaleX(-1); background: #000; z-index: 3; }
+  #alert { position: fixed; left: 0; right: 0; bottom: 0; display: none; padding: 18px 24px; background: #c1121f; color: #fff; font-size: 30px; font-weight: 800; text-align: center; z-index: 9; }
+  #rd { position: fixed; left: 20px; bottom: 16px; width: 14px; height: 14px; border-radius: 50%; background: #e33; display: none; z-index: 6; }
+  body.recording #rd { display: block; }
+</style>
+</head>
+<body>
+<div class="controls">
+  <label class="lock">Reel <select id="reel"></select></label>
+  <label class="lock">Speed <input id="wpm" type="range" min="110" max="260" step="5" value="140"> <span id="wpmv">140</span> wpm</label>
+  <label class="lock">Camera <select id="cam"></select></label>
+  <label class="lock">Microphone <select id="mic"></select></label>
+  <button id="rec" disabled>Record</button>
+  <button id="stop">Stop</button>
+  <span id="msg"></span>
+</div>
+<video id="preview" autoplay muted playsinline></video>
+<div id="count"></div>
+<div id="stage"><div id="cur" class="line"></div><div id="next" class="line"></div></div>
+<div id="rd"></div>
+<div id="alert" role="alert">Saving failed — don't close this page</div>
+<script type="module">
+import { scheduleLine, tap, advance } from './karaoke.mjs';
+
+const $ = (id) => document.getElementById(id);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const post = (url, body) => fetch(url, { method: 'POST', body }).catch((e) => console.error(url, e));
+let saveFailed = false;
+// Critical upload (chunks, log): check res.ok, retry once, and on failure raise a
+// warning that stays on screen until the next take starts.
+async function postCritical(url, body) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, { method: 'POST', body });
+      if (res.ok) return true;
+      console.error(url, 'HTTP', res.status);
+    } catch (e) { console.error(url, e); }
+    if (attempt === 0) await sleep(500);
+  }
+  saveFailed = true;
+  $('alert').style.display = 'block';
+  return false;
+}
+// Uploads and logs go out strictly in order, one at a time.
+let queue = Promise.resolve();
+const enqueue = (fn) => (queue = queue.then(fn));
+
+let reels = [], settings = {}, stream = null, session = null;
+
+function setMsg(t) { $('msg').textContent = t; }
+
+async function startStream() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  stream = null;
+  const video = { width: 1920, height: 1080, frameRate: 30 };
+  if ($('cam').value) video.deviceId = { exact: $('cam').value };
+  const audio = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+  if ($('mic').value) audio.deviceId = { exact: $('mic').value };
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video, audio });
+  } catch (e) {
+    const denied = e.name === 'NotAllowedError' || e.name === 'SecurityError';
+    setMsg(denied ? 'Camera/microphone permission denied. Allow access in the browser settings and reload the page.'
+                  : `Could not open the camera/microphone (${e.name}).`);
+    $('rec').disabled = true;
+    return;
+  }
+  $('rec').disabled = false;
+  setMsg('');
+  $('preview').srcObject = stream;
+  const devs = await navigator.mediaDevices.enumerateDevices();
+  fill($('cam'), devs.filter((d) => d.kind === 'videoinput'), stream.getVideoTracks()[0]?.getSettings().deviceId, 'Camera');
+  fill($('mic'), devs.filter((d) => d.kind === 'audioinput'), stream.getAudioTracks()[0]?.getSettings().deviceId, 'Microphone');
+}
+
+function fill(sel, list, current, label) {
+  sel.innerHTML = '';
+  list.forEach((d, i) => sel.add(new Option(d.label || `${label} ${i + 1}`, d.deviceId)));
+  if (current) sel.value = current;
+}
+
+function saveSettings() {
+  settings = { wpm: Number($('wpm').value), cameraId: $('cam').value || null, micId: $('mic').value || null };
+  post('/api/settings', JSON.stringify(settings));
+}
+
+function renderLine(sched, el) {
+  const cur = $('cur');
+  if (cur.children.length !== sched.words.length || cur.dataset.key !== sched.key) {
+    cur.dataset.key = sched.key;
+    cur.innerHTML = '';
+    sched.words.forEach(({ w }) => { const s = document.createElement('span'); s.className = 'w'; s.textContent = w + ' '; cur.append(s); });
+  }
+  const nodes = cur.children;
+  sched.words.forEach((x, i) => {
+    const past = el >= x.end, now = el >= x.start && el < x.end;
+    nodes[i].className = 'w' + (now ? ' now' : past ? ' past' : '');
+  });
+}
+
+async function record() {
+  const reel = reels.find((r) => r.id === $('reel').value);
+  if (!reel || !stream) return;
+  const wpm = Number($('wpm').value);
+  saveSettings();
+  saveFailed = false;
+  $('alert').style.display = 'none';
+  const scheds = reel.lines.map((l, i) => ({ ...scheduleLine(l.text, wpm), key: `${reel.id}:${i}` }));
+  const durs = scheds.map((s) => s.dur);
+
+  document.body.classList.add('counting');
+  show(0, 0);
+  for (const n of [3, 2, 1]) { $('count').textContent = n; await sleep(1000); }
+  document.body.classList.replace('counting', 'recording');
+
+  const take = new Date().toISOString().replace(/[:.]/g, '-');
+  const mime = 'video/webm;codecs=vp9,opus';
+  if (!MediaRecorder.isTypeSupported(mime)) { setMsg('This browser cannot record VP9/Opus.'); document.body.classList.remove('recording'); return; }
+  const mr = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12_000_000 });
+  const q = `reel=${encodeURIComponent(reel.id)}&take=${encodeURIComponent(take)}`;
+  const log = { reel: reel.id, take, wpm, events: [] };
+  let t0 = null;
+  const now = () => (performance.now() - t0) / 1000;
+  const emit = (e) => {
+    log.events.push(e);
+    const body = JSON.stringify(log); // snapshot: later events must not leak into earlier posts
+    enqueue(() => postCritical(`/api/log?${q}`, body));
+  };
+
+  mr.ondataavailable = (ev) => { if (ev.data.size) enqueue(() => postCritical(`/api/chunk?${q}`, ev.data)); };
+  const started = new Promise((ok) => (mr.onstart = ok));
+  const stopped = new Promise((ok) => (mr.onstop = ok));
+  mr.start(1000);
+  await started;
+  t0 = performance.now();
+
+  let st = { line: 0, lineStartedAt: 0 };
+  let announced = -1; // line whose "line" event has been emitted for the current lineStartedAt
+  let announcedAt = null;
+  let stopping = false;
+  // stop() does not depend on the frame loop (rAF stops in hidden tabs): it logs and
+  // stops the recorder itself; the loop just notices `stopping` and exits.
+  session = { tap() {
+    if (stopping) return;
+    const t = now();
+    const next = tap(st, t);
+    emit({ t, type: 'tap', line: st.line, to: next.line });
+    st = next; announced = -1;
+  }, stop() {
+    if (stopping) return;
+    stopping = true;
+    emit({ t: now(), type: 'stop' });
+    mr.stop();
+  } };
+
+  while (!stopping) {
+    const t = now();
+    st = { ...st, ...advance(st, t, durs) };
+    if (t >= st.lineStartedAt && (announced !== st.line || announcedAt !== st.lineStartedAt)) {
+      // the line event is stamped with the line's own start time (after the 1 s tap beat)
+      emit({ t: st.lineStartedAt, type: 'line', line: st.line });
+      announced = st.line; announcedAt = st.lineStartedAt;
+    }
+    show(st.line, t - st.lineStartedAt);
+    // rAF for smooth highlighting, with a timer fallback for hidden/occluded tabs
+    await new Promise((r) => { requestAnimationFrame(r); setTimeout(r, 100); });
+  }
+  session = null;
+  await stopped;
+  await queue;
+  document.body.classList.remove('recording');
+  setMsg(saveFailed ? '' : `Saved: recordings/raw/${reel.id}-${take}.webm`);
+
+  function show(i, el) {
+    renderLine(scheds[i], el);
+    $('next').textContent = reel.lines[i + 1]?.text ?? '';
+  }
+}
+
+const tapHandler = (e) => { if (session && !e.target.closest('.controls')) session.tap(); };
+document.addEventListener('pointerdown', tapHandler);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && session) session.stop(); });
+$('stop').addEventListener('click', () => session?.stop());
+$('rec').addEventListener('click', record);
+$('wpm').addEventListener('input', () => { $('wpmv').textContent = $('wpm').value; });
+$('wpm').addEventListener('change', saveSettings);
+$('cam').addEventListener('change', async () => { await startStream(); saveSettings(); });
+$('mic').addEventListener('change', async () => { await startStream(); saveSettings(); });
+
+(async () => {
+  const data = await (await fetch('/api/reels')).json();
+  reels = data.reels;
+  settings = await (await fetch('/api/settings')).json();
+  reels.forEach((r) => $('reel').add(new Option(`${r.id} — ${r.title ?? ''}`, r.id)));
+  const wpm = settings.wpm ?? data.wpm ?? 140;
+  $('wpm').value = wpm; $('wpmv').textContent = $('wpm').value; // the slider clamps/snaps (e.g. 300 -> 260)
+  // preselect saved devices when present
+  const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+  const has = (id) => id && devs.some((d) => d.deviceId === id);
+  if (has(settings.cameraId)) $('cam').add(new Option('', settings.cameraId));
+  if (has(settings.micId)) $('mic').add(new Option('', settings.micId));
+  if (has(settings.cameraId)) $('cam').value = settings.cameraId;
+  if (has(settings.micId)) $('mic').value = settings.micId;
+  await startStream();
+})();
+</script>
+</body>
+</html>

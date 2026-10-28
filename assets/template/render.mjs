@@ -16,6 +16,15 @@ import {bundle} from '@remotion/bundler';
 import {renderMedia, renderStill, selectComposition} from '@remotion/renderer';
 import fs from 'fs';
 import path from 'path';
+// Optional browser settings, both read from the environment and omitted (Remotion's defaults) when unset:
+//   REMOTION_PORT=3123      another local server already listens on Remotion's default port (3000) and the
+//                           render then 404s or hangs on "Waiting for root component to load".
+//   REMOTION_BROWSER=/path  use this Chrome / chrome-headless-shell binary instead of the one Remotion
+//                           downloads, e.g. when that build hangs loading the root component.
+const browserOpts = {
+  ...(process.env.REMOTION_PORT ? {port: Number(process.env.REMOTION_PORT)} : {}),
+  ...(process.env.REMOTION_BROWSER ? {browserExecutable: process.env.REMOTION_BROWSER} : {}),
+};
 
 const args = process.argv.slice(2);
 const noteAt = args.indexOf('--note');
@@ -34,17 +43,18 @@ const versions = path.join(dir, 'versions');
 fs.mkdirSync(dir, {recursive: true});
 
 const serveUrl = await bundle({entryPoint: path.resolve('src/index.ts'), symlinkPublicDir: true});
-const composition = await selectComposition({serveUrl, id});
+const composition = await selectComposition({serveUrl, id, ...browserOpts, timeoutInMilliseconds: 120000});
 const seconds = +(composition.durationInFrames / composition.fps).toFixed(2);
 console.log(`${id}: ${composition.width}x${composition.height}, ${seconds}s`);
 
 if (composition.durationInFrames === 1) {
-  await renderStill({composition, serveUrl, frame: 0, output: tmp, imageFormat: 'jpeg', jpegQuality: 92});
+  await renderStill({composition, serveUrl, ...browserOpts, frame: 0, output: tmp, imageFormat: 'jpeg', jpegQuality: 92});
 } else {
   let last = -1;
   await renderMedia({
     composition,
     serveUrl,
+    ...browserOpts,
     codec: 'h264',
     crf: 16, // YouTube re-encodes anyway; give it a clean master
     imageFormat: 'jpeg',

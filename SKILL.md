@@ -17,6 +17,8 @@ The edit is written as **`plan.json`** in *source time*, meaning the timestamps 
 
 You never do frame math by hand.
 
+For **scripted talking-head reels** (teleprompter, head bubble over screen demos, no raw footage to start from), use the sibling skill in [`influencer/`](influencer/SKILL.md). It shares these scripts.
+
 Bundled resources (paths relative to this skill's directory; `<skill>` below):
 
 | file | what it does |
@@ -27,11 +29,13 @@ Bundled resources (paths relative to this skill's directory; `<skill>` below):
 | `scripts/setup_speech.sh` | One-time private venv (`~/.cache/yt-video-creator`): mlx-whisper or faster-whisper, numpy, OpenCV and the YuNet face model. Prints its python path |
 | `scripts/transcribe.py` | `skim` whole clips (small model) → readable transcripts; `words` for chosen windows (large-v3-turbo) → `transcripts/words.json` |
 | `scripts/music.py` | Song loudness map, breaks → onsets, BPM and beat phase |
-| `scripts/build_edit.py` | `plan.json` → media + `src/edit-data.ts` + `edit-map.json` (also `npm run build`) |
+| `scripts/build_edit.py` | `plan.json` → media + `src/edit-data.ts` + `edit-map.json` (also `npm run build`). Music modes `bed`/`broll`/`auto`/`duck` (looping bed that dips under talk: `loopFrom`/`loopTo`/`duckVolume`), `long.burnSubs: false` for caption tracks, `reels` |
+| `scripts/export_srt.py` | With `long.burnSubs: false`: the subtitles as `out/captions.en.srt` plus the original-language track `out/captions.<lang>.srt` for YouTube |
 | `scripts/speech_map.py` | Loudness-based speech islands. Only useful for quiet footage |
 | `scripts/faces.py` | `scan` a render for faces mapped to shots; `review` tiles the flagged frames |
 | `scripts/audio_levels.py` | Loudness of a render per segment kind (talk / b-roll / cards / post) |
-| `assets/template/` | Remotion project: `LongForm` 1920×1080, `Short` 1080×1920, `Thumbnail` 1280×720 still, `render.mjs`, `stills.mjs`, `theme.ts` |
+| `assets/template/` | Remotion project: `LongForm` 1920×1080, `Short` 1080×1920, `Reel1`… 1080×1920 talking-head reels (`Reel.tsx`: demo + head bubble, subtitles, drawn annotations), `Thumbnail` 1280×720 still, `render.mjs`, `stills.mjs`, `theme.ts`. Env `REMOTION_PORT` / `REMOTION_BROWSER` only if the default port is taken or the downloaded Chrome hangs |
+| scripted reels (used by [`influencer/`](influencer/SKILL.md)) | `scripts/check_scripts.py` (validate `scripts/reels.json`), `export_scripts.py` (→ `SCRIPTS.md`), `teleprompter/` (karaoke teleprompter that records camera + mic), `import_take.py`, `takes.py` (clean take per line), `bubble.py` + `segment_person.swift` (head bubble, macOS), `demo_rec.mjs` (+ `demo_helpers.mjs`, `demo_launch.mjs`: 9:16 browser demo recorder), `assets/code-viewer/` (highlighted code page to record), `assemble_reels.py` (→ plan.json `reels`). Format in `references/plan.md` § Reels |
 | `references/plan.md` | **The plan.json format, with a music-driven and a talk example. Read before writing the plan.** |
 | `references/talk.md` | The dialogue workflow in detail (transcription pitfalls, choosing conversations, subtitles, ducking) |
 | `references/formats.md` | YouTube and Shorts specs, safe zones, pacing, music licensing |
@@ -149,7 +153,7 @@ People review, upload and share renders while you work, so a file you "just rege
 
 ## Gotchas (all hit in practice)
 
-- **Homebrew ffmpeg is often broken** (`Library not loaded: libx265.215.dylib`). Don't fix the system install unasked. The scripts use Remotion's bundled binary via `_ff.py`, and so must you: `DYLD_LIBRARY_PATH` needs to point at its folder. It has scale, crop, trim, concat, loudnorm, silencedetect, libx264, h264_videotoolbox and videotoolbox decode. It has **no** `fps` filter (use `-r 30`), `drawtext`, `tile` or s16le muxer (decode audio to WAV; tile images with Pillow). mlx-whisper shells out to the system ffmpeg, so `transcribe.py` passes it decoded arrays instead.
+- **Homebrew ffmpeg is often broken** (`Library not loaded: libx265.215.dylib`). Don't fix the system install unasked. The scripts use Remotion's bundled binary via `_ff.py`, and so must you: `DYLD_LIBRARY_PATH` needs to point at its folder. It has scale, crop, trim, concat, loudnorm, silencedetect, libx264, h264_videotoolbox and videotoolbox decode. It has **no** `fps` filter (use `-r 30`), `drawtext`, `tile`, `pad` (use `rotate=0:ow=W:oh=H:c=black`) or s16le muxer (decode audio to WAV; tile images with Pillow). mlx-whisper shells out to the system ffmpeg, so `transcribe.py` passes it decoded arrays instead.
 - **Media and `public/`**: the render server 404s on symlinks leaving `public/`, and symlinked JPEGs fail to decode. `build_edit.py` hard-links `link` clips (copying if on another disk, with a warning) and writes proxies. Raw footage never goes in `public/`.
 - **Proxies** are for heavy sources (10-bit HEVC at 2.7K/4K, 60p, files of tens of GB). They're transcoded per used range at 1080p30 H.264 with loudnorm, at ~3–4× realtime with videotoolbox, and they make stills and renders fast. Changing in/out points outside a proxy range triggers a new proxy on the next build.
 - **Transcription**: always force `--language`. Auto-detect once turned 40 minutes of Portuguese into garbage Japanese because a waiter spoke first. Loudness-based silence detection fails in noisy places, so cut from word timestamps. More in `references/talk.md`.

@@ -117,6 +117,16 @@ const Credits: React.FC<{c: NonNullable<LongData['credits']>}> = ({c}) => {
   );
 };
 
+// music level at an absolute frame: full volume, dipping to duckVolume under talk (10-frame ramps)
+const duckLevel = (t: number) => {
+  const m = D.music!;
+  let k = 0;
+  for (const [a, b] of m.duck ?? []) {
+    k = Math.max(k, interpolate(t, [a - 10, a, b, b + 10], [0, 1, 1, 0], clamp));
+  }
+  return m.volume + (( m.duckVolume ?? m.volume) - m.volume) * k;
+};
+
 export const LongForm: React.FC = () => {
   const hasMusic = D.music && getStaticFiles().some((s) => s.name === D.music!.file);
   const shots = D.sections.flatMap((s) => s.shots);
@@ -158,7 +168,7 @@ export const LongForm: React.FC = () => {
         ) : null,
       )}
       {shots.map((shot, i) => (
-        <ShotSubs key={`s${i}`} shot={shot} />
+        D.burnSubs !== false && <ShotSubs key={`s${i}`} shot={shot} />
       ))}
       {first && (
         <Sequence from={0} durationInFrames={20}>
@@ -188,7 +198,7 @@ export const LongForm: React.FC = () => {
             </Sequence>
           ))}
           {D.post.shots.map((shot, i) => (
-            <ShotSubs key={`ps${i}`} shot={shot} />
+            D.burnSubs !== false && <ShotSubs key={`ps${i}`} shot={shot} />
           ))}
           <Sequence from={D.post.start} durationInFrames={D.post.len}>
             <AbsoluteFill style={{padding: '56px 0 0 72px', alignItems: 'flex-start'}}>
@@ -211,7 +221,11 @@ export const LongForm: React.FC = () => {
             <Audio
               src={staticFile(D.music!.file)}
               trimBefore={Math.round(r.songFrom * D.fps)}
-              volume={(f) => interpolate(f, [0, D.music!.fadeIn, r.len - D.music!.fadeOut, r.len], [0, D.music!.volume, D.music!.volume, 0], clamp)}
+              volume={(f) => {
+                const fi = r.fadeIn ?? D.music!.fadeIn, fo = r.fadeOut ?? D.music!.fadeOut;
+                const base = interpolate(f, [0, fi, r.len - fo, r.len], [0, 1, 1, 0], clamp);
+                return base * duckLevel(r.start + f);
+              }}
             />
           </Sequence>
         ))}

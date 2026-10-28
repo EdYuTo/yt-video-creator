@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<!-- Code page for 9:16 screen recordings (demo_rec.mjs). Built by build_viewer.mjs; highlighting is done
+     at build time, so the page needs no network or JS libraries. API for demo beats:
+     window.mark(from, to)  window.unmark()  window.scrollToLine(n, smooth)  (each line is #L<n>) -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #111; }
+  body {
+    color: #e6e6e6;
+    font: 15px/1.6 Menlo, "SF Mono", Monaco,
+      Consolas, "DejaVu Sans Mono", monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+  #tab {
+    position: sticky; top: 0; z-index: 2;
+    background: #111;
+    padding: 14px 14px 0;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  #tab span {
+    display: inline-block;
+    padding: 8px 12px 9px;
+    background: #1c1c1c;
+    color: #f0f0f0;
+    font-size: 13px;
+    line-height: 1.2;
+    border-radius: 8px 8px 0 0;
+    border-top: 2px solid #D9913F;
+  }
+  #code {
+    padding: 12px 14px 60vh;
+    overflow-x: auto;
+  }
+  .ln {
+    display: flex;
+    white-space: pre;
+    border-left: 3px solid transparent;
+    padding-left: 6px;
+    margin-left: -9px;
+    scroll-margin-top: 50px;
+  }
+  .no {
+    flex: none;
+    width: {{NUMW}}ch;
+    margin-right: 10px;
+    text-align: right;
+    color: #5c6370;
+    user-select: none;
+  }
+  .tx { flex: none; }
+  /* wrap (default): long lines fold under themselves instead of scrolling sideways on a phone-width page */
+  body.wrap .ln { white-space: pre-wrap; }
+  body.wrap .tx { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+  .ln.mk {
+    background: #D9913F33;
+    border-left-color: #D9913F;
+    animation: markIn 250ms ease-out;
+  }
+  @keyframes markIn {
+    from { background: #D9913F00;
+           border-left-color: #D9913F00; }
+    to   { background: #D9913F33;
+           border-left-color: #D9913F; }
+  }
+  .hljs-keyword, .hljs-literal { color: #ff7ab2; }
+  .hljs-type, .hljs-title { color: #7fd6e4; }
+  .hljs-built_in { color: #a5e07f; }
+  .hljs-string { color: #f4b97c; }
+  .hljs-number { color: #d9c97c; }
+  .hljs-comment { color: #7f8c98; }
+  .hljs-params, .hljs-variable { color: #e6e6e6; }
+  .hljs-subst { color: #e6e6e6; }
+  .hljs-meta, .hljs-keyword.hljs-meta { color: #ffa14f; }
+</style>
+</head>
+<body class="{{BODYCLASS}}">
+<div id="tab"><span>{{TITLE}}</span></div>
+<div id="code">
+{{LINES}}
+</div>
+<script>
+(function () {
+  var marked = [];
+  window.unmark = function () {
+    marked.forEach(function (el) {
+      el.classList.remove('mk');
+    });
+    marked = [];
+  };
+  window.mark = function (from, to) {
+    window.unmark();
+    to = to == null ? from : to;
+    for (var n = from; n <= to; n++) {
+      var el = document.getElementById('L' + n);
+      if (!el) continue;
+      el.classList.add('mk');
+      marked.push(el);
+    }
+  };
+  window.scrollToLine = function (n, smooth) {
+    var el = document.getElementById('L' + n);
+    if (el) el.scrollIntoView({
+      block: 'start',
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  };
+})();
+</script>
+</body>
+</html>

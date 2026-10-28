@@ -9,6 +9,8 @@ aac; hwaccel videotoolbox. It LACKS: fps (use `-r 30`), drawtext, tile, the raw 
 So: tile images with Pillow and decode audio to WAV (see pcm()).
 """
 import glob
+import io
+import wave
 import os
 import shutil
 import subprocess
@@ -56,7 +58,8 @@ def pcm(path, project=None, sr=16000, start=None, dur=None):
         cmd += ["-t", f"{dur:.3f}"]
     cmd += ["-vn", "-ac", "1", "-ar", str(sr), "-c:a", "pcm_s16le", "-f", "wav", "-"]
     raw = subprocess.run(cmd, env=env, capture_output=True, check=True).stdout
-    return raw[44:][: (len(raw) - 44) // 2 * 2]
+    with wave.open(io.BytesIO(raw), "rb") as wav:
+        return wav.readframes(wav.getnframes())
 
 
 def project_arg(argv=None):
